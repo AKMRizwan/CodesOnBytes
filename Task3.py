@@ -1,0 +1,131 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+file_path = 'd:/data science/dataset - netflix1.csv'
+df = pd.read_csv(file_path)
+# At first we will analyze the data
+num_rows,num_columns=df.shape
+print(f"Number of rows: {num_rows}")
+print(f"Number of columns: {num_columns}")
+print(df.head()) # Printing first five rows
+print(df.describe()) # Describing the data
+# Checking missing values
+missing_data = df.isna()
+missing_count = missing_data.sum()
+print(missing_count)
+# Checking for duplicated values
+duplicate_values = df.duplicated()
+num_duplicate = duplicate_values.sum()
+print(f"Number of duplicate values: {num_duplicate}")
+# Checking outlier with IQR method
+q1=df.select_dtypes(include=['int','float']).quantile(0.25)
+q2=df.select_dtypes(include=['int','float']).quantile(0.75)
+IQR=q2-q1
+outliers = ((df.select_dtypes(include=['int','float'])<(q1-1.5*IQR)) | (df.select_dtypes(include=['int','float'])>(q2+1.5*IQR))).any(axis = 1)
+print(df[outliers])
+num_outliers = outliers.sum()
+print(f"Number of outliers: {num_outliers}")
+# Now removing outliers
+data_cleaned = df[~outliers]
+print(f"Number of rows after removing outliers:", data_cleaned.shape[0])
+print(data_cleaned)
+# Now saving cleaned data in a CSV file
+output_file = 'D:\data science\cleaned_data_task3'
+data_cleaned.to_csv(output_file, index = False)
+print(f"Cleaned dataset saved to {output_file}.")
+# 1) Bar plot to visualize the 'type' column
+sns.set(style = "darkgrid")
+plt.figure(figsize = (10,6))
+sns.countplot(data = data_cleaned , x = 'rating')
+plt.title('Count of Shows/Movies by Rating')
+plt.xticks(rotation = 90)
+plt.savefig('Bar_plot.png')
+plt.show()
+# 2) Count plot to visualize the frequency of 'rating' category
+sns.set(style = "darkgrid")
+plt.figure(figsize = (10,6))
+sns.countplot(data = data_cleaned , x = 'rating')
+plt.title('Frequency of Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Count')
+plt.xticks(rotation = 90)
+plt.savefig('count_plot.png')
+plt.show()
+# 3) Line plot for time-series data
+data_cleaned_copy=data_cleaned.copy()
+data_cleaned_copy['date_added']  = pd.to_datetime(data_cleaned_copy['date_added'])
+data_cleaned_copy['release_year']=data_cleaned_copy['date_added'].dt.year
+yearly_counts=data_cleaned_copy['release_year'].value_counts().sort_index()
+yearly_counts_df=yearly_counts.reset_index()
+yearly_counts_df.columns=['Year','Count']
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+sns.lineplot(data=yearly_counts_df, x='Year', y='Count')
+plt.title('Number of titles added over the years')
+plt.xlabel('year')
+plt.ylabel('Number of titles added')
+plt.xticks(rotation=90)
+plt.savefig('line_plot.png')
+plt.show()
+# 4) Histogram for release year
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+sns.histplot(data=data_cleaned, x='release_year', bins=20, kde=True)
+plt.title('Distribution of Release Years')
+plt.xlabel('Release Year')
+plt.ylabel('Count')
+plt.xticks(rotation=90)
+plt.savefig('Histogram.png')
+plt.show()
+# 5) Scatter plot for release year and duration
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+data_cleaned_copy=data_cleaned.copy()
+data_cleaned_copy['duration']=data_cleaned_copy['duration'].str.extract('(\d+)').astype(float)
+data_cleaned_copy['duration_minutes']=data_cleaned_copy['duration']/60
+sns.scatterplot(data=data_cleaned_copy, x='release_year', y='duration_minutes')
+plt.title('Scatter plot of Release Year vs. Duration')
+plt.xlabel('Release Year')
+plt.ylabel('Duration (Minutes)')
+plt.xticks(rotation=90)
+plt.savefig('sactterplot.png')
+plt.show()
+# 6) Pie chart for listed in categories
+category_distribution=data_cleaned['listed_in'].value_counts()
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+plt.pie(category_distribution, labels=category_distribution.index, autopct='%1.1f%%', startangle=140)
+plt.title('Distribution of Listed in categories')
+plt.axis('equal')
+plt.xticks(rotation=90)
+plt.savefig('Pie_plot.png')
+plt.show()
+# 7) heatmap for type vs. rating
+pivot_table=pd.crosstab(data_cleaned['type'], data_cleaned['rating'])
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+sns.heatmap(pivot_table,annot=True, cmap="YlGnBu", fmt='d', cbar=False)
+plt.title('Correlation Heatmap: Type vs. Rating')
+plt.xlabel('Rating')
+plt.ylabel('Type')
+plt.xticks(rotation=90)
+plt.savefig('heat_map.png')
+plt.show()
+# 8) Box plot for release year
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+sns.boxplot(data=data_cleaned, x='release_year')
+plt.title('Box Plot of Release Year')
+plt.xlabel('Release Year')
+plt.xticks(rotation=90)
+plt.savefig('Box_plot.png')
+plt.show()
+# 9) Violin plot for release year
+sns.set(style="darkgrid")
+plt.figure(figsize=(10,6))
+sns.violinplot(data=data_cleaned,x='release_year')
+plt.title('Violin Plot of Release year')
+plt.xlabel('Release Year')
+plt.xticks(rotation=90)
+plt.savefig('Violin_plot.png')
+plt.show()
